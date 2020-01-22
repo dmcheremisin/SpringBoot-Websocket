@@ -12,8 +12,8 @@ import java.util.Date;
 @Controller
 public class ChatController {
 
-    @MessageMapping("/discussion/{topic}")
-    @SendTo("/topic/messages")
+    @MessageMapping("/discussion/{topic}") // end-point to handle incoming messages
+    @SendTo("/topic/messages") // end-point to propagate messages
     public OutputMessage send(@DestinationVariable("topic") String topic, InputMessage inputMessage) throws Exception {
         return new OutputMessage(inputMessage.getFrom(), inputMessage.getText(), topic, new Date());
     }
