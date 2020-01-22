@@ -1,5 +1,6 @@
 # SpringBoot Websocket demo projet
 
 ## Package:
-- SpringBoot WebSocket Server
-- StompClient
+- model - common models for client and server
+- client - stomp client
+- server - springboot server
