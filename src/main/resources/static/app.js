@@ -1,50 +1,68 @@
-var stompClient = null;
+$(function() {
+    'use strict';
 
-function setConnected(connected) {
-    $("#connect").prop("disabled", connected);
-    $("#disconnect").prop("disabled", !connected);
-    if (connected) {
-        $("#conversation").show();
-    }
-    else {
-        $("#conversation").hide();
-    }
-    $("#greetings").html("");
-}
+    var client;
 
-function connect() {
-    var socket = new SockJS('/gs-guide-websocket');
-    stompClient = Stomp.over(socket);
-    stompClient.connect({}, function (frame) {
-        setConnected(true);
-        console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/greetings', function (greeting) {
-            showGreeting(JSON.parse(greeting.body).content);
+    function showMessage(mesg){
+	    $('#messages').append('<tr>' +
+			      '<td>' + mesg.from + '</td>' +
+			      '<td>' + mesg.topic + '</td>' +
+			      '<td>' + mesg.text + '</td>' +
+			      '<td>' + mesg.time + '</td>' +
+			      '</tr>');
+    }
+
+    function setConnected(connected) {
+        $("#connect").prop("disabled", connected);
+        $("#disconnect").prop("disabled", !connected);
+        $('#from').prop('disabled', connected);
+        $('#text').prop('disabled', !connected);
+
+        if (connected) {
+            $("#conversation").show();
+            $('#text').focus();
+        }
+        else
+            $("#conversation").hide();
+
+        $("#messages").html("");
+    }
+
+    $("form").on('submit', function (e) {
+	    e.preventDefault();
+    });
+
+    $('#from').on('blur change keyup', function(ev) {
+	    $('#connect').prop('disabled', $(this).val().length == 0 );
+    });
+    $('#connect, #disconnect, #text').prop('disabled', true);
+
+    $('#connect').click(function() {
+        client = Stomp.over(new SockJS('/chat'));
+        client.connect({}, function (frame) {
+            setConnected(true);
+            client.subscribe('/topic/messages', function (message) {
+                showMessage(JSON.parse(message.body));
+            });
         });
     });
-}
 
-function disconnect() {
-    if (stompClient !== null) {
-        stompClient.disconnect();
-    }
-    setConnected(false);
-    console.log("Disconnected");
-}
-
-function sendName() {
-    stompClient.send("/app/hello", {}, JSON.stringify({'name': $("#name").val()}));
-}
-
-function showGreeting(message) {
-    $("#greetings").append("<tr><td>" + message + "</td></tr>");
-}
-
-$(function () {
-    $("form").on('submit', function (e) {
-        e.preventDefault();
+    $('#disconnect').click(function() {
+        if (client != null) {
+            client.disconnect();
+            setConnected(false);
+        }
+        client = null;
     });
-    $( "#connect" ).click(function() { connect(); });
-    $( "#disconnect" ).click(function() { disconnect(); });
-    $( "#send" ).click(function() { sendName(); });
+
+    $('#send').click(function() {
+        var topic = $('#topic').val();
+        client.send("/app/discussion/" + topic, {},
+            JSON.stringify({
+                from: $("#from").val(),
+                text: $('#text').val()
+            })
+        );
+        $('#text').val("");
+    });
 });
