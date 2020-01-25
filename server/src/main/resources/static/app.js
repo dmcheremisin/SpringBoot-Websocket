@@ -1,15 +1,15 @@
-$(function() {
+$(function () {
     'use strict';
 
     var client;
 
-    function showMessage(mesg){
-	    $('#messages').append('<tr>' +
-			      '<td>' + mesg.from + '</td>' +
-			      '<td>' + mesg.topic + '</td>' +
-			      '<td>' + mesg.text + '</td>' +
-			      '<td>' + mesg.time + '</td>' +
-			      '</tr>');
+    function showMessage(mesg) {
+        $('#messages').append('<tr>' +
+            '<td>' + mesg.from + '</td>' +
+            '<td>' + mesg.topic + '</td>' +
+            '<td>' + mesg.text + '</td>' +
+            '<td>' + mesg.time + '</td>' +
+            '</tr>');
     }
 
     function setConnected(connected) {
@@ -21,23 +21,22 @@ $(function() {
         if (connected) {
             $("#conversation").show();
             $('#text').focus();
-        }
-        else
+        } else
             $("#conversation").hide();
 
         $("#messages").html("");
     }
 
     $("form").on('submit', function (e) {
-	    e.preventDefault();
+        e.preventDefault();
     });
 
-    $('#from').on('blur change keyup', function(ev) {
-	    $('#connect').prop('disabled', $(this).val().length == 0 );
+    $('#from').on('blur change keyup', function (ev) {
+        $('#connect').prop('disabled', $(this).val().length == 0);
     });
     $('#connect, #disconnect, #text').prop('disabled', true);
 
-    $('#connect').click(function() {
+    $('#connect').click(function () {
         client = Stomp.over(new SockJS('/chat'));
         client.connect({}, function (frame) {
             setConnected(true);
@@ -47,7 +46,7 @@ $(function() {
         });
     });
 
-    $('#disconnect').click(function() {
+    $('#disconnect').click(function () {
         if (client != null) {
             client.disconnect();
             setConnected(false);
@@ -55,7 +54,7 @@ $(function() {
         client = null;
     });
 
-    $('#send').click(function() {
+    $('#send').click(function () {
         var topic = $('#topic').val();
         client.send("/app/discussion/" + topic, {},
             JSON.stringify({
